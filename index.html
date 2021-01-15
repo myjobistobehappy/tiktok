@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Movie-TikTok</title>
+		<script>
+			function download(blob,filename) {
+				let blobURL = URL.createObjectURL(blob);
+				let a = document.createElement('a');
+				a.download = filename;
+				a.href = blobURL;
+				a.click();
+				URL.revokeObjectURL(blobURL);
+			}
+			function log(str) {
+				document.querySelector('#log').innerHTML = str;
+				console.log(str);
+			}
+			async function newWebM(file,name) {
+				let buffer = await file.arrayBuffer();
+				log('File to Array Buffer...');
+				let uint = new Uint8Array(buffer);
+				log('Array Buffer to Uint8Array...');
+				let extract = uint.findIndex((item,index) => item==68&&uint[index+1]==137)+2;
+				[136, 64, 176, 0].forEach((item,index)=>uint[extract+index] = item);
+				log('Uint8Array edited...');
+				let blob = new Blob([uint], {type: "video/webm"});
+				log('New blob created with edited Uint8Array...');
+				download(blob, name);
+				log('Downloading new file...')
+			}
+			window.onload = () => {
+				let input = document.querySelector('#uploadfile');
+				input.oninput = async function() {
+					//let r = await fetch(input.files[0]);
+					let currentfile = input.files[0];
+					if (!currentfile) {
+						log('No file :(');
+						return;
+					}
+					if (!currentfile.name.endsWith('webm')) {
+						alert('This file isn\'t supported yet :(')
+						return;
+					}
+					let filebuff = await input.files[0].arrayBuffer();
+					let fileblob = new Blob([filebuff],{type: 'video/webm'});
+					newWebM(fileblob, currentfile.name);
+				}
+			}
+		</script>
+		<style>
+			html,body {
+				font-family: Tahoma;
+				background: url('https://sm.mashable.com/t/mashable_in/photo/default/tiktokmusic_ey85.1920.jpg');
+				/*background: #69C9D0;*/
+				background-repeat: no-repeat;
+				background-size: cover;
+				height: 100%;
+				overflow: hidden;
+			}
+			#middlediv {
+				width: 80%;
+				height: 80%;
+				position: absolute;
+				background: rgba(255,255,255,0.8);
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%,-50%);
+				padding: 20px;
+				box-shadow: 0 0 0 4px #69C9D0, 0 0 0 8px #EE1D52;
+				border-radius: 5px;
+			}
+			#title {
+				color: #69C9D0;
+				-webkit-text-stroke: black 1px;;
+				display: block;
+				width: fit-content;
+				margin: auto;
+			}
+			#split {
+				border-bottom: #EE1D52 solid 2px;
+			}
+			#uploadfile {
+				display: none;
+			}
+			#uploadlabel {
+				background: #EE1D52;
+				padding: 8px;
+				border-radius: 15px;
+				border: #69C9D0 solid 2px;
+				color: white;
+				cursor: pointer;
+				display: block;
+				width: fit-content;
+				opacity: 1;
+				margin: -5px;
+			}
+			#info {
+				position: absolute; 
+				bottom: 0;
+				right: 0;
+				width: 30%;
+				font-size: 10px;
+				transform: translate(-10%,-10%);
+			}
+		</style>
+	</head>
+	<body>
+		<div id='middlediv'>
+			<h1 id='title'>Make 3 Minute TikTok Videos</h1>
+			<hr id='split'>
+			<h2>Upload Your <u>WebM</u> Video File Below:</h2>
+			<label for="uploadfile" id='uploadlabel'>Choose File</label>
+			<input type='file' id='uploadfile'>
+			<br>
+			<div id='log'>Log...</div>
+			<div id='info'>**More Info:<br>
+			#1: I take no data from you<br>
+			#2: This page uses JavaScript<br>
+			#3: The file you upload must be WebM: don't screw around with it<br>
+			#4: I think this must be uploaded through TikTok's website, not the app :(<br>
+			#3: Tell your friends about this website<br>
+			#4: Their is a file size limit. I don't know what it is :(<br>
+			#5: How this works is it converts a WebM file to a Uint8Array made from the video's arrayBuffer. Then, the first appearence of the values: [68,137] are found in order to let me replace the next for values with [136, 64, 176, 0].
+			</div>
+		</div>
+	</body>
+</html>
